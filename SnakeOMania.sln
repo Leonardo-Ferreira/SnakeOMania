@@ -1,0 +1,23 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnakeOMania.ConsoleClient", "SnakeOMania.ConsoleClient\SnakeOMania.ConsoleClient.csproj", "{45967359-8930-46DD-89D0-85C78C94858F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnakeOMania.Library", "SnakeOMania.Library\SnakeOMania.Library.csproj", "{F875E1FA-F96B-4DAE-8032-04BAF400CA62}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{45967359-8930-46DD-89D0-85C78C94858F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45967359-8930-46DD-89D0-85C78C94858F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45967359-8930-46DD-89D0-85C78C94858F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45967359-8930-46DD-89D0-85C78C94858F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F875E1FA-F96B-4DAE-8032-04BAF400CA62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F875E1FA-F96B-4DAE-8032-04BAF400CA62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F875E1FA-F96B-4DAE-8032-04BAF400CA62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F875E1FA-F96B-4DAE-8032-04BAF400CA62}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
