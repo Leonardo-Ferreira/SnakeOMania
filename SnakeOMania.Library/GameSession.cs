@@ -7,7 +7,23 @@ namespace SnakeOMania.Library
     {
         public int SessionId { get; set; }
         public Board Board { get; set; }
-        public List<Snake> Players { get; set; }
+        public Dictionary<int, Snake> Players { get; set; }
         public bool Running { get; set; }
+        public int Difficulty { get; set; }
+
+        public void CommandReceived(int player, Direction direction)
+        {
+            /*
+            var snake = Players[player];
+            if(snake.BodySections[0].Heading != direction)
+            {
+                int sectionsToMove;
+                if (snake)
+                {
+
+                }
+            }
+            */
+        }
     }
 }
