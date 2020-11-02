@@ -10,6 +10,7 @@ namespace SnakeOMania.Library
         //The first Section of the Array represents the head and so on
         public List<SnakeBodySection> BodySections { get; set; }
         private int SectionCount { get; set; }
+        private bool _ateApple { get; set; }
 
         public Snake(int top, int left)
         {
@@ -38,6 +39,11 @@ namespace SnakeOMania.Library
             HandleSnakeHead(direction, headSection, mainDirection);
 
             HandleSnakeTail(tailSection);
+        }
+
+        public void NotifyAteApple()
+        {
+            _ateApple = true;
         }
 
         private void HandleSnakeHead(Direction direction, SnakeBodySection headSection, Direction mainDirection)
@@ -92,6 +98,12 @@ namespace SnakeOMania.Library
 
         private void HandleSnakeTail(SnakeBodySection tailSection)
         {
+            if (_ateApple)
+            {
+                _ateApple = false;
+                return;
+            }
+
             if (tailSection.Heading.HasFlag(Direction.HorizontalOrder))
             {
                 tailSection.Tail = new Point(tailSection.Tail.X + (tailSection.Heading == Direction.Left ? -1 : 1), tailSection.Tail.Y);
