@@ -20,11 +20,13 @@ namespace SnakeOMania.ConsoleClient
         public void StartAndRun()
         {
             _gameBoard = new Board() { Size = 13 };
-            _mainSnake = new Snake(0, 0);
+            _mainSnake = new Snake(4, 4);
 
             DrawEmptyBoard();
             Console.ReadKey();
             _gameRunning = true;
+
+            Console.CursorVisible = false;
 
             Task.Run(async () =>
             {
@@ -65,32 +67,48 @@ namespace SnakeOMania.ConsoleClient
 
         void RenderSnake(Snake snake)
         {
-            Console.SetCursorPosition(snake.BodySections[0].Head.X + 1, snake.BodySections[0].Head.Y + 1);
-            Console.Write("H");
-            switch (snake.BodySections[0].Heading)
+            for (int i = 0; i < snake.BodySections.Count; i++)
             {
-                case Direction.Up:
+                var currentPos = snake.BodySections[i].Head;
+                Direction currentDirection = snake.BodySections[i].Heading;
+                do
+                {
+                    Console.SetCursorPosition(currentPos.X + 1, currentPos.Y + 1);
+                    if (currentPos == snake.BodySections[0].Head)
                     {
-                        Console.CursorLeft--;
-                        Console.CursorTop--;
-                        break;
+                        Console.Write("H");
                     }
-                case Direction.Down:
+                    else
                     {
-                        Console.CursorLeft--;
-                        Console.CursorTop++;
-                        break;
+                        Console.Write("o");
                     }
-                case Direction.Left:
+                    switch (currentDirection)
                     {
-                        Console.CursorLeft--;
-                        Console.CursorLeft--;
-                        break;
+                        case Direction.Up:
+                            {
+                                currentPos.Y++;
+                                break;
+                            }
+                        case Direction.Down:
+                            {
+                                currentPos.Y--;
+                                break;
+                            }
+                        case Direction.Left:
+                            {
+                                currentPos.X++;
+                                break;
+                            }
+                        case Direction.Right:
+                            {
+                                currentPos.X--;
+                                break;
+                            }
+                        default:
+                            break;
                     }
-                default:
-                    break;
+                } while (currentPos != snake.BodySections[i].Tail);
             }
-            Console.Write("X");
         }
 
         void RenderApple()
@@ -103,8 +121,6 @@ namespace SnakeOMania.ConsoleClient
         {
             while (true)
             {
-                //Tick();
-
                 var keyRead = Console.ReadKey(true);
                 if (keyRead.Key == ConsoleKey.Escape)
                 {
@@ -144,7 +160,7 @@ namespace SnakeOMania.ConsoleClient
 
             DrawEmptyBoard();
 
-            _mainSnake.Turn(_lastOrder);
+            _mainSnake.Move(_lastOrder);
 
             RenderSnake(_mainSnake);
 
