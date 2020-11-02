@@ -144,11 +144,16 @@ namespace SnakeOMania.ConsoleClient
 
             DrawEmptyBoard();
 
-            RenderApple();
-
             _mainSnake.Turn(_lastOrder);
 
             RenderSnake(_mainSnake);
+
+            if (_mainSnake.BodySections[0].Head == _gameBoard.AppleLocation)
+            {
+                _gameBoard.RelocateApple();
+            }
+
+            RenderApple();
         }
     }
 }
