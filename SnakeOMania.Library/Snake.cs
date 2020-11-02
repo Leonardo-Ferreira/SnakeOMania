@@ -9,7 +9,6 @@ namespace SnakeOMania.Library
     {
         //The first Section of the Array represents the head and so on
         public List<SnakeBodySection> BodySections { get; set; }
-        private int SectionCount { get; set; }
         private bool _ateApple { get; set; }
 
         public Snake(int top, int left)

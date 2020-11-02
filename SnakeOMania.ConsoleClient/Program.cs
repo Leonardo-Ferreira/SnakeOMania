@@ -164,18 +164,35 @@ namespace SnakeOMania.ConsoleClient
 
             RenderSnake(_mainSnake);
 
+            CheckForCollisionAgainstBorders(_mainSnake);
+
             if (_mainSnake.BodySections[0].Head == _gameBoard.AppleLocation)
             {
                 _mainSnake.NotifyAteApple();
                 while (_mainSnake.BodySections[0].Head == _gameBoard.AppleLocation)
                 {
                     _gameBoard.RelocateApple();
-                }                
+                }
             }
 
             RenderApple();
 
             Console.SetCursorPosition(_gameBoard.Size + 3, _gameBoard.Size + 3);
+        }
+
+        private void CheckForCollisionAgainstBorders(Snake mainSnake)
+        {
+            var head = mainSnake.BodySections[0].Head;
+            if (head.X == -1 || head.Y == -1)
+            {
+                // collision with top or left borders
+                throw new SnakeCollisionException();
+            }
+            if (head.X == _gameBoard.Size || head.Y == _gameBoard.Size)
+            {
+                // collision with bottom or right borders
+                throw new SnakeCollisionException();
+            }
         }
     }
 }
