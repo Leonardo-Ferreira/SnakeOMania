@@ -35,6 +35,13 @@ namespace SnakeOMania.Library
                 direction = headSection.Heading;
             }
 
+            HandleSnakeHead(direction, headSection, mainDirection);
+
+            HandleSnakeTail(tailSection);
+        }
+
+        private void HandleSnakeHead(Direction direction, SnakeBodySection headSection, Direction mainDirection)
+        {
             int newX;
             int newY;
             if (direction.HasFlag(Direction.HorizontalOrder))
@@ -81,7 +88,10 @@ namespace SnakeOMania.Library
                     BodySections.Insert(0, newHead);
                 }
             }
+        }
 
+        private void HandleSnakeTail(SnakeBodySection tailSection)
+        {
             if (tailSection.Heading.HasFlag(Direction.HorizontalOrder))
             {
                 tailSection.Tail = new Point(tailSection.Tail.X + (tailSection.Heading == Direction.Left ? -1 : 1), tailSection.Tail.Y);
