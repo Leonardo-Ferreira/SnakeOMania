@@ -17,7 +17,7 @@ namespace SnakeOMania.Library
             {
                 Head = new Point(left, top),
                 Heading = Direction.Right,
-                Tail = new Point(left - 3, top)
+                Tail = new Point(left - 6, top)
             };
             BodySections = new List<SnakeBodySection>() {
               headSection
@@ -38,6 +38,8 @@ namespace SnakeOMania.Library
             HandleSnakeHead(direction, headSection, mainDirection);
 
             HandleSnakeTail(tailSection);
+
+            CheckForSelfCollision();
         }
 
         public void NotifyAteApple()
@@ -114,6 +116,33 @@ namespace SnakeOMania.Library
             if (tailSection.Head == tailSection.Tail)
             {
                 BodySections.RemoveAt(BodySections.Count - 1);
+            }
+        }
+
+        private void CheckForSelfCollision()
+        {
+            var secCount = BodySections.Count;
+            if (secCount < 2)
+            {
+                //Cant colide with its own section or right next one
+                return;
+            }
+            var head = BodySections[0].Head;
+            for (int i = 2; i < BodySections.Count; i++)
+            {
+                var sec = BodySections[i];
+                var x1 = sec.Head.X;
+                var x2 = sec.Tail.X;
+                var xp = head.X;
+                var y1 = sec.Head.Y;
+                var y2 = sec.Tail.Y;
+                var yp = head.Y;
+
+                var AB = Math.Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+                var AP = Math.Sqrt((xp - x1) * (xp - x1) + (yp - y1) * (yp - y1));
+                var PB = Math.Sqrt((x2 - xp) * (x2 - xp) + (y2 - yp) * (y2 - yp));
+                if (AB == AP + PB)
+                    throw new SnakeCollisionException();
             }
         }
     }

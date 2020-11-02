@@ -33,7 +33,7 @@ namespace SnakeOMania.ConsoleClient
                 while (_gameRunning)
                 {
                     Tick();
-                    await Task.Delay(100);
+                    await Task.Delay(200);
                 }
             });
 
@@ -144,10 +144,6 @@ namespace SnakeOMania.ConsoleClient
                 {
                     _lastOrder = Direction.Right;
                 }
-                else if (keyRead.Key == ConsoleKey.R)
-                {
-                    _gameBoard.RelocateApple();
-                }
             }
         }
 
@@ -160,10 +156,14 @@ namespace SnakeOMania.ConsoleClient
 
             DrawEmptyBoard();
 
-            _mainSnake.Move(_lastOrder);
-
-            RenderSnake(_mainSnake);
-
+            try
+            {
+                _mainSnake.Move(_lastOrder);
+            }
+            finally
+            {
+                RenderSnake(_mainSnake);
+            }
             CheckForCollisionAgainstBorders(_mainSnake);
 
             if (_mainSnake.BodySections[0].Head == _gameBoard.AppleLocation)
