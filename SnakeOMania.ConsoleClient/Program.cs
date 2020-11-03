@@ -14,15 +14,40 @@ namespace SnakeOMania.ConsoleClient
         static async Task Main(string[] args)
         {
             Program p = new Program();
-            p.StartAndRun();
+            while (p.StartAndRun())
+            {
+                // do nothing
+            }
         }
 
-        public void StartAndRun()
+        private void DrawMenu()
         {
+            Console.Clear();
+            Console.WriteLine("Snake O'Mania");
+            Console.WriteLine("");
+            Console.WriteLine("Options:");
+            Console.WriteLine("1 - New Game");
+            Console.WriteLine("Q - Quit");
+            Console.WriteLine("");
+            Console.WriteLine("Take your pick:");
+        }
+
+        public bool StartAndRun()
+        {
+            DrawMenu();
+
+            var pick = Console.ReadKey();
+
+            if (pick.Key == ConsoleKey.Q)
+            {
+                return false;
+            }
+
             _gameBoard = new Board() { Size = 13 };
             _mainSnake = new Snake(4, 4);
 
             DrawEmptyBoard();
+            DrawStaringUp();
             Console.ReadKey();
             _gameRunning = true;
 
@@ -30,14 +55,74 @@ namespace SnakeOMania.ConsoleClient
 
             Task.Run(async () =>
             {
-                while (_gameRunning)
+                try
                 {
-                    Tick();
-                    await Task.Delay(200);
+                    while (_gameRunning)
+                    {
+                        Tick();
+                        await Task.Delay(200);
+                    }
                 }
+                catch
+                {
+                    _gameRunning = false;
+                    DrawGameOver();
+                }
+
             });
 
             Loop();
+            return true;
+        }
+
+        void DrawStaringUp()
+        {
+            Console.SetCursorPosition(0, (_gameBoard.Size / 2) - 1);
+            Console.WriteLine(" ");
+            for (int i = 0; i < (_gameBoard.Size / 2) - 3; i++)
+            {
+                Console.Write(" ");
+            }
+            Console.Write("To Start");
+            for (int i = 0; i < (_gameBoard.Size / 2); i++)
+            {
+                Console.Write(" ");
+            }
+            Console.WriteLine();
+            for (int i = 0; i < (_gameBoard.Size / 2) - 5; i++)
+            {
+                Console.Write(" ");
+            }
+            Console.Write("Press any key");
+            for (int i = 0; i < (_gameBoard.Size / 2); i++)
+            {
+                Console.Write(" ");
+            }
+        }
+
+        void DrawGameOver()
+        {
+            Console.SetCursorPosition(0, (_gameBoard.Size / 2) - 1);
+            Console.WriteLine(" ");
+            for (int i = 0; i < (_gameBoard.Size / 2) - 3; i++)
+            {
+                Console.Write(" ");
+            }
+            Console.Write("Game Over");
+            for (int i = 0; i < (_gameBoard.Size / 2); i++)
+            {
+                Console.Write(" ");
+            }
+            Console.WriteLine();
+            for (int i = 0; i < (_gameBoard.Size / 2) - 5; i++)
+            {
+                Console.Write(" ");
+            }
+            Console.Write("Press any key");
+            for (int i = 0; i < (_gameBoard.Size / 2); i++)
+            {
+                Console.Write(" ");
+            }
         }
 
         void DrawEmptyBoard()
@@ -119,7 +204,7 @@ namespace SnakeOMania.ConsoleClient
 
         void Loop()
         {
-            while (true)
+            while (_gameRunning)
             {
                 var keyRead = Console.ReadKey(true);
                 if (keyRead.Key == ConsoleKey.Escape)
