@@ -47,7 +47,7 @@ namespace SnakeOMania.ConsoleClient
             _mainSnake = new Snake(4, 4);
 
             DrawEmptyBoard();
-            DrawStaringUp();
+            DrawMainMessage("To Start");
             Console.ReadKey();
             _gameRunning = true;
 
@@ -66,7 +66,7 @@ namespace SnakeOMania.ConsoleClient
                 catch
                 {
                     _gameRunning = false;
-                    DrawGameOver();
+                    DrawMainMessage("Game Over");
                 }
 
             });
@@ -75,40 +75,15 @@ namespace SnakeOMania.ConsoleClient
             return true;
         }
 
-        void DrawStaringUp()
+        void DrawMainMessage(string msg)
         {
             Console.SetCursorPosition(0, (_gameBoard.Size / 2) - 1);
             Console.WriteLine(" ");
-            for (int i = 0; i < (_gameBoard.Size / 2) - 3; i++)
+            for (int i = 0; i < (_gameBoard.Size / 2) - (int)Math.Round((decimal)msg.Length / 2, MidpointRounding.AwayFromZero)+2; i++)
             {
                 Console.Write(" ");
             }
-            Console.Write("To Start");
-            for (int i = 0; i < (_gameBoard.Size / 2); i++)
-            {
-                Console.Write(" ");
-            }
-            Console.WriteLine();
-            for (int i = 0; i < (_gameBoard.Size / 2) - 5; i++)
-            {
-                Console.Write(" ");
-            }
-            Console.Write("Press any key");
-            for (int i = 0; i < (_gameBoard.Size / 2); i++)
-            {
-                Console.Write(" ");
-            }
-        }
-
-        void DrawGameOver()
-        {
-            Console.SetCursorPosition(0, (_gameBoard.Size / 2) - 1);
-            Console.WriteLine(" ");
-            for (int i = 0; i < (_gameBoard.Size / 2) - 3; i++)
-            {
-                Console.Write(" ");
-            }
-            Console.Write("Game Over");
+            Console.Write(msg);
             for (int i = 0; i < (_gameBoard.Size / 2); i++)
             {
                 Console.Write(" ");
