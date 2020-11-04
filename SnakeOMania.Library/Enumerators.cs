@@ -12,4 +12,10 @@ namespace SnakeOMania.Library
         Up = 0b00000110,
         Down = 0b00001010
     }
+
+    public enum HandshakeFailureReason
+    {
+        UnsupportedClient = 1,
+        PlayerNameIsTooLong = 2
+    }
 }
