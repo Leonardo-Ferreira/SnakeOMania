@@ -44,7 +44,8 @@ namespace SnakeOMania.ConsoleClient
             }
 
             _gameBoard = new Board() { Size = 13 };
-            _mainSnake = new Snake(4, 4);
+            _gameBoard.SnakesPlaying.Add(new Snake(4, 4));
+            _mainSnake = _gameBoard.SnakesPlaying[0];
 
             DrawEmptyBoard();
             DrawMainMessage("To Start");
@@ -79,7 +80,7 @@ namespace SnakeOMania.ConsoleClient
         {
             Console.SetCursorPosition(0, (_gameBoard.Size / 2) - 1);
             Console.WriteLine(" ");
-            for (int i = 0; i < (_gameBoard.Size / 2) - (int)Math.Round((decimal)msg.Length / 2, MidpointRounding.AwayFromZero)+2; i++)
+            for (int i = 0; i < (_gameBoard.Size / 2) - (int)Math.Round((decimal)msg.Length / 2, MidpointRounding.AwayFromZero) + 2; i++)
             {
                 Console.Write(" ");
             }
@@ -229,10 +230,8 @@ namespace SnakeOMania.ConsoleClient
             if (_mainSnake.BodySections[0].Head == _gameBoard.AppleLocation)
             {
                 _mainSnake.NotifyAteApple();
-                while (_mainSnake.BodySections[0].Head == _gameBoard.AppleLocation)
-                {
-                    _gameBoard.RelocateApple();
-                }
+
+                _gameBoard.RelocateApple();
             }
 
             RenderApple();

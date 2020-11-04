@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using SnakeOMania.Library.Physics;
 
 namespace SnakeOMania.Library
 {
@@ -131,17 +132,7 @@ namespace SnakeOMania.Library
             for (int i = 2; i < BodySections.Count; i++)
             {
                 var sec = BodySections[i];
-                var x1 = sec.Head.X;
-                var x2 = sec.Tail.X;
-                var xp = head.X;
-                var y1 = sec.Head.Y;
-                var y2 = sec.Tail.Y;
-                var yp = head.Y;
-
-                var AB = Math.Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-                var AP = Math.Sqrt((xp - x1) * (xp - x1) + (yp - y1) * (yp - y1));
-                var PB = Math.Sqrt((x2 - xp) * (x2 - xp) + (y2 - yp) * (y2 - yp));
-                if (AB == AP + PB)
+                if (CollisionChecker.Collided(sec.Head, sec.Tail, head))
                     throw new SnakeCollisionException();
             }
         }
