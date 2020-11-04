@@ -8,8 +8,8 @@ namespace SnakeOMania.Library
         public int SessionId { get; set; }
         public Board Board { get; set; }
         public Dictionary<int, Snake> Players { get; set; }
-        public bool Running { get; set; }
-        public int Difficulty { get; set; }
+        public bool Running { get; set; } = false;
+        public int Difficulty { get; set; } = 200;
 
         public void CommandReceived(int player, Direction direction)
         {

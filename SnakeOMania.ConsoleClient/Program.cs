@@ -8,8 +8,8 @@ namespace SnakeOMania.ConsoleClient
     {
         Snake _mainSnake;
         Board _gameBoard;
-        bool _gameRunning;
         Direction _lastOrder;
+        GameSession _session;
 
         static async Task Main(string[] args)
         {
@@ -27,6 +27,7 @@ namespace SnakeOMania.ConsoleClient
             Console.WriteLine("");
             Console.WriteLine("Options:");
             Console.WriteLine("1 - New Game");
+            Console.WriteLine("2 - Difficulty Settings");
             Console.WriteLine("Q - Quit");
             Console.WriteLine("");
             Console.WriteLine("Take your pick:");
@@ -43,6 +44,17 @@ namespace SnakeOMania.ConsoleClient
                 return false;
             }
 
+            if (_session == null)
+            {
+                _session = new GameSession();
+            }
+
+            if (pick.Key == ConsoleKey.D2)
+            {
+                SetDifficultySettings();
+                return true;
+            }
+
             _gameBoard = new Board() { Size = 13 };
             _gameBoard.SnakesPlaying.Add(new Snake(4, 4));
             _mainSnake = _gameBoard.SnakesPlaying[0];
@@ -50,7 +62,7 @@ namespace SnakeOMania.ConsoleClient
             DrawEmptyBoard();
             DrawMainMessage("To Start");
             Console.ReadKey();
-            _gameRunning = true;
+            _session.Running = true;
 
             Console.CursorVisible = false;
 
@@ -58,15 +70,15 @@ namespace SnakeOMania.ConsoleClient
             {
                 try
                 {
-                    while (_gameRunning)
+                    while (_session.Running)
                     {
                         Tick();
-                        await Task.Delay(200);
+                        await Task.Delay(_session.Difficulty);
                     }
                 }
                 catch
                 {
-                    _gameRunning = false;
+                    _session.Running = false;
                     DrawMainMessage("Game Over");
                 }
 
@@ -74,6 +86,30 @@ namespace SnakeOMania.ConsoleClient
 
             Loop();
             return true;
+        }
+
+        void SetDifficultySettings()
+        {
+            do
+            {
+                Console.Clear();
+                Console.WriteLine($"Current difficulty is: {_session.Difficulty}");
+                Console.WriteLine("");
+                Console.WriteLine("");
+                Console.WriteLine("Tip: The smaller the number, faster the snake moves. Maximum difficulty is 25, which means 40 blocks per second.");
+                Console.SetCursorPosition(0, 2);
+                Console.Write("Enter a new difficulty setting: ");
+
+                var input = Console.ReadLine();
+                if (int.TryParse(input,out int set))
+                {
+                    if (set >= 25)
+                    {
+                        _session.Difficulty = set;
+                        break;
+                    }
+                }
+            } while (true);
         }
 
         void DrawMainMessage(string msg)
@@ -180,12 +216,12 @@ namespace SnakeOMania.ConsoleClient
 
         void Loop()
         {
-            while (_gameRunning)
+            while (_session.Running)
             {
                 var keyRead = Console.ReadKey(true);
                 if (keyRead.Key == ConsoleKey.Escape)
                 {
-                    _gameRunning = false;
+                    _session.Running = false;
                     break;
                 }
 
@@ -210,7 +246,7 @@ namespace SnakeOMania.ConsoleClient
 
         void Tick()
         {
-            if (!_gameRunning)
+            if (!_session.Running)
             {
                 return;
             }
