@@ -29,5 +29,10 @@ namespace SnakeOMania.Library
             Room = data[0];
             Message = Encoding.UTF8.GetString(data.Slice(1));
         }
+
+        public override string ToString()
+        {
+            return Message;
+        }
     }
 }
