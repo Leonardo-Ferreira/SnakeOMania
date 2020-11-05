@@ -10,11 +10,63 @@ namespace SnakeOMania.Server.TestClient
 {
     class Program
     {
+        static int chatMessageCount = 3;
+        static Socket _mainConnection;
+
         static async Task Main(string[] args)
         {
             Console.WriteLine("Starting");
 
             await StartClient();
+
+            Console.WriteLine("HANDSHAKE DONE!");
+
+            var receiveTask = Task.Run(async () =>
+            {
+                byte[] buff = new byte[258];
+                var mem = new Memory<byte>(buff);
+                while (true)
+                {
+                    var received = await _mainConnection.ReceiveAsync(mem, SocketFlags.None);
+                    var commandType = (CommandId)buff[0];
+                    var commandDataLength = (ushort)buff[1];
+
+                    var command = await CommandHelpers.RebuildCommand(commandType, mem.Slice(2, commandDataLength));
+                    ExecuteCommand(command);
+                }
+            });
+
+            do
+            {
+                var cmd = new ChatCommand();
+                cmd.Message = Console.ReadLine();
+
+                _mainConnection.Send(cmd.Serialize().Span);
+            } while (true);
+        }
+
+        private static void ExecuteCommand(ICommand command)
+        {
+            switch (command.Definition)
+            {
+                case CommandId.SendChat:
+                    PrintChat(((ChatCommand)command).Message);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private static void PrintChat(string msg)
+        {
+            try
+            {
+                Console.WriteLine(msg);
+            }
+            catch (Exception x)
+            {
+
+            }
         }
 
         public static async Task StartClient()
@@ -30,6 +82,7 @@ namespace SnakeOMania.Server.TestClient
                 // Create a TCP/IP  socket.    
                 Socket sender = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 sender.NoDelay = true;
+                sender.Blocking = false;
 
                 // Connect the socket to the remote endpoint. Catch any errors.    
                 try
@@ -41,7 +94,7 @@ namespace SnakeOMania.Server.TestClient
                         sender.RemoteEndPoint.ToString());
 
                     // Encode the data string into a byte array.    
-                    byte[] buff = new byte[18];
+                    byte[] buff = new byte[10];
                     MemoryStream msg = new MemoryStream(buff);
                     msg.Write(BitConverter.GetBytes((ushort)1));
                     msg.Write(Encoding.UTF8.GetBytes("Leonardo"));
@@ -53,11 +106,10 @@ namespace SnakeOMania.Server.TestClient
                     int bytesRec = await sender.ReceiveAsync(new Memory<byte>(buff), SocketFlags.None);
                     var resp = (HandshakeFailureReason)BitConverter.ToInt16(buff, 0);
 
-
-                    // Release the socket.    
-                    sender.Shutdown(SocketShutdown.Both);
-                    sender.Close();
-
+                    if (resp == HandshakeFailureReason.Success)
+                    {
+                        _mainConnection = sender;
+                    }
                 }
                 catch (ArgumentNullException ane)
                 {

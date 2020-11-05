@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -15,13 +17,21 @@ namespace SnakeOMania.Server
 
         List<Player> _activePlayers;
 
+        ConcurrentQueue<(ICommand Command, Player Player)> _toBeExecuted;
+
         static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Console.WriteLine("Server Starting");
 
             Program p = new Program();
             p._configs = new ServerConfigurations();
-            await p.StartServer();
+            p._toBeExecuted = new ConcurrentQueue<(ICommand Command, Player Player)>();
+
+            var serverT = p.StartServer();
+            var dispatchingT = p.StartCommandDispatching();
+
+            await serverT;
+            await dispatchingT;
         }
 
         public async Task StartServer()
@@ -41,12 +51,35 @@ namespace SnakeOMania.Server
                 {
                     Console.WriteLine("Waiting for a connection...");
                     Socket handler = await listener.AcceptAsync();
+                    handler.NoDelay = true;
+                    handler.Blocking = false;
 
                     var handshakeResult = await Handshake(handler);
-                    if (handshakeResult != null)
+                    if (handshakeResult == null)
                     {
-                        _activePlayers.Add(handshakeResult);
+                        continue;
                     }
+
+                    _activePlayers.Add(handshakeResult);
+                    var pt = Task.Run(async () =>
+                    {
+                        byte[] buff = new byte[258];
+                        var mem = new Memory<byte>(buff);
+                        while (true)
+                        {
+                            var received = await handshakeResult.Connection.ReceiveAsync(mem, SocketFlags.None);
+                            var commandType = (CommandId)buff[0];
+                            var commandDataLength = (ushort)buff[1];
+
+                            if (received < commandDataLength)
+                            {
+                                // TODO: fetch rest of the command data
+                            }
+
+                            var command = await CommandHelpers.RebuildCommand(commandType, mem.Slice(2, commandDataLength));
+                            _toBeExecuted.Enqueue((command, handshakeResult));
+                        }
+                    });
                 }
             }
             catch (Exception e)
@@ -56,6 +89,33 @@ namespace SnakeOMania.Server
 
             Console.WriteLine("\n Press any key to continue...");
             Console.ReadKey();
+        }
+
+        public async Task StartCommandDispatching()
+        {
+            while (true)
+            {
+                if (_toBeExecuted.TryDequeue(out var item))
+                {
+                    switch (item.Command.Definition)
+                    {
+                        case CommandId.SendChat:
+                            var others = _activePlayers;//.Where(p => p.Id != item.Player.Id).ToList();
+                            var serializedCommand = item.Command.Serialize();
+                            foreach (var player in others)
+                            {
+                                player.Connection.Send(serializedCommand.Span);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else
+                {
+                    await Task.Delay(50);
+                }
+            }
         }
 
         internal async Task<Player> Handshake(Socket socket)

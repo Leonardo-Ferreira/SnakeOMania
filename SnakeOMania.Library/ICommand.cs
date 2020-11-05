@@ -5,5 +5,6 @@ namespace SnakeOMania.Library
     {
         CommandId Definition { get; }
         Memory<byte> Serialize();
+        void Deserialize(Span<byte> data);
     }
 }

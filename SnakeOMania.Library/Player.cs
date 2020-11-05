@@ -7,7 +7,10 @@ namespace SnakeOMania.Library
     {
         public Player()
         {
+            Id = Guid.NewGuid();
         }
+
+        public Guid Id { get; }
 
         public ushort ClientVersion { get; set; }
 
