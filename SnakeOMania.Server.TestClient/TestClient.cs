@@ -31,7 +31,7 @@ namespace SnakeOMania.Server.TestClient
                     var commandType = (CommandId)buff[0];
                     var commandDataLength = (ushort)buff[1];
 
-                    var command = await CommandHelpers.RebuildCommand(commandType, mem.Slice(2, commandDataLength));
+                    var command = await CommandHelpers.RebuildCommand(mem.Slice(0, received));
                     ExecuteCommand(command);
                 }
             });
@@ -70,7 +70,7 @@ namespace SnakeOMania.Server.TestClient
             switch (command.Definition)
             {
                 case CommandId.SendChat:
-                    PrintChat(((ChatCommand)command).Message);
+                    PrintChat(command.ToString());
                     break;
                 default:
                     break;

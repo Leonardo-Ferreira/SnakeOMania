@@ -18,6 +18,8 @@ namespace SnakeOMania.Server
 
         List<Player> _activePlayers;
 
+        ConcurrentDictionary<int, (string RoomName, List<Player> Players)> _chatRooms;
+
         ConcurrentQueue<(ICommand Command, Player Player)> _toBeExecuted;
 
         static async Task Main(string[] args)
@@ -70,7 +72,7 @@ namespace SnakeOMania.Server
                         {
                             var received = await handshakeResult.Connection.ReceiveAsync(mem, SocketFlags.None);
 
-                            var command = await CommandHelpers.RebuildCommand(mem);
+                            var command = await CommandHelpers.RebuildCommand(mem.Slice(0, received));
                             _toBeExecuted.Enqueue((command, handshakeResult));
                         }
                     });
@@ -99,7 +101,8 @@ namespace SnakeOMania.Server
                 {
                     case CommandId.SendChat:
                         Debug.WriteLine("Echoing: " + item.Command.ToString());
-                        var others = _activePlayers.Where(p => p.Id != item.Player.Id).ToList();
+                        ((ChatCommand)item.Command).By = item.Player.Name;
+                        var others = _activePlayers;//.Where(p => p.Id != item.Player.Id).ToList();
                         var serializedCommand = item.Command.Serialize();
                         foreach (var player in others)
                         {

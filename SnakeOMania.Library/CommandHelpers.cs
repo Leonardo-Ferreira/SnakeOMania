@@ -32,9 +32,8 @@ namespace SnakeOMania.Library
         public static async Task<ICommand> RebuildCommand(Memory<byte> data)
         {
             var commandType = (CommandId)data.Span[0];
-            var commandDataLength = (ushort)data.Span[1];
 
-            return await RebuildCommand(commandType, data.Slice(2, commandDataLength));
+            return await RebuildCommand(commandType, data);
         }
     }
 }
