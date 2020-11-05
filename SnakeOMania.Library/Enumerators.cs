@@ -15,6 +15,7 @@ namespace SnakeOMania.Library
 
     public enum HandshakeFailureReason
     {
+        Success = 0,
         UnsupportedClient = 1,
         PlayerNameIsTooLong = 2
     }

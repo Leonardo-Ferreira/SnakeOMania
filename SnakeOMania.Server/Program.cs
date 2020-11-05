@@ -15,9 +15,13 @@ namespace SnakeOMania.Server
 
         List<Player> _activePlayers;
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Console.WriteLine("Hello World!");
+
+            Program p = new Program();
+            p._configs = new ServerConfigurations();
+            await p.StartServer();
         }
 
         public async Task StartServer()
@@ -57,7 +61,8 @@ namespace SnakeOMania.Server
         internal async Task<Player> Handshake(Socket socket)
         {
             var src = new CancellationTokenSource(3000);
-            var handshakeData = new Memory<byte>();
+            byte[] buff = new byte[100];
+            var handshakeData = new Memory<byte>(buff);
             var received = await socket.ReceiveAsync(handshakeData, SocketFlags.None, src.Token);
             if (received == 0)
             {
@@ -85,6 +90,8 @@ namespace SnakeOMania.Server
             result.ClientVersion = cliVersion;
             result.Name = playerName;
             result.Connection = socket;
+
+            socket.Send(BitConverter.GetBytes((byte)HandshakeFailureReason.Success));
 
             return result;
         }
