@@ -19,4 +19,16 @@ namespace SnakeOMania.Library
         UnsupportedClient = 1,
         PlayerNameIsTooLong = 2
     }
+
+    public enum CommandId : byte
+    {
+        Quit = 0,
+        ListLobby = 1,
+        SendChat = 2,
+        CreateGame = 3,
+        StartGame = 4,
+        ReadyCheck = 5,
+        MoveSnake = 6,
+        Ping = 7
+    }
 }
