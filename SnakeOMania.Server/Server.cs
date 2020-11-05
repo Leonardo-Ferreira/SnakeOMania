@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -11,7 +12,7 @@ using SnakeOMania.Library;
 
 namespace SnakeOMania.Server
 {
-    class Program
+    class Server
     {
         ServerConfigurations _configs;
 
@@ -23,7 +24,7 @@ namespace SnakeOMania.Server
         {
             Console.WriteLine("Server Starting");
 
-            Program p = new Program();
+            Server p = new Server();
             p._configs = new ServerConfigurations();
             p._toBeExecuted = new ConcurrentQueue<(ICommand Command, Player Player)>();
 
@@ -68,15 +69,8 @@ namespace SnakeOMania.Server
                         while (true)
                         {
                             var received = await handshakeResult.Connection.ReceiveAsync(mem, SocketFlags.None);
-                            var commandType = (CommandId)buff[0];
-                            var commandDataLength = (ushort)buff[1];
 
-                            if (received < commandDataLength)
-                            {
-                                // TODO: fetch rest of the command data
-                            }
-
-                            var command = await CommandHelpers.RebuildCommand(commandType, mem.Slice(2, commandDataLength));
+                            var command = await CommandHelpers.RebuildCommand(mem);
                             _toBeExecuted.Enqueue((command, handshakeResult));
                         }
                     });
@@ -95,25 +89,26 @@ namespace SnakeOMania.Server
         {
             while (true)
             {
-                if (_toBeExecuted.TryDequeue(out var item))
-                {
-                    switch (item.Command.Definition)
-                    {
-                        case CommandId.SendChat:
-                            var others = _activePlayers;//.Where(p => p.Id != item.Player.Id).ToList();
-                            var serializedCommand = item.Command.Serialize();
-                            foreach (var player in others)
-                            {
-                                player.Connection.Send(serializedCommand.Span);
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                else
+                if (!_toBeExecuted.TryDequeue(out var item))
                 {
                     await Task.Delay(50);
+                    continue;
+                }
+
+                switch (item.Command.Definition)
+                {
+                    case CommandId.SendChat:
+                        Debug.WriteLine("Echoing: " + item.Command.ToString());
+                        var others = _activePlayers.Where(p => p.Id != item.Player.Id).ToList();
+                        var serializedCommand = item.Command.Serialize();
+                        foreach (var player in others)
+                        {
+                            player.Connection.Send(serializedCommand.Span);
+                        }
+                        break;
+                    default:
+                        Debug.WriteLine("unkown command: " + item.Command.ToString());
+                        break;
                 }
             }
         }

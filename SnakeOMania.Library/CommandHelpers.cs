@@ -18,11 +18,23 @@ namespace SnakeOMania.Library
                     result = (ChatCommand)Activator.CreateInstance(typeof(ChatCommand));
                     result.Deserialize(data.Span);
                     break;
+                case CommandId.JoinChatRoom:
+                    result = (JoinRoomCommand)Activator.CreateInstance(typeof(JoinRoomCommand));
+                    result.Deserialize(data.Span);
+                    break;
                 default:
                     result = null;
                     break;
             }
             return result;
+        }
+
+        public static async Task<ICommand> RebuildCommand(Memory<byte> data)
+        {
+            var commandType = (CommandId)data.Span[0];
+            var commandDataLength = (ushort)data.Span[1];
+
+            return await RebuildCommand(commandType, data.Slice(2, commandDataLength));
         }
     }
 }

@@ -8,7 +8,7 @@ using SnakeOMania.Library;
 
 namespace SnakeOMania.Server.TestClient
 {
-    class Program
+    class TestClient
     {
         static int chatMessageCount = 3;
         static Socket _mainConnection;
@@ -38,8 +38,28 @@ namespace SnakeOMania.Server.TestClient
 
             do
             {
-                var cmd = new ChatCommand();
-                cmd.Message = Console.ReadLine();
+                var input = Console.ReadLine();
+
+                ICommand cmd;
+                var commandAndParameters = input.Split(" ", 2);
+                var baseCommand = commandAndParameters[0].ToLower();
+
+                switch (baseCommand)
+                {
+                    case "/?":
+                        continue;
+                        break;
+                    case "/join":
+                        var auxC = new JoinRoomCommand();
+                        auxC.RoomName = commandAndParameters[1];
+                        cmd = auxC;
+                        break;
+                    default:
+                        var auxCmd = new ChatCommand();
+                        auxCmd.Message = input;
+                        cmd = auxCmd;
+                        break;
+                }
 
                 _mainConnection.Send(cmd.Serialize().Span);
             } while (true);

@@ -29,6 +29,8 @@ namespace SnakeOMania.Library
         StartGame = 4,
         ReadyCheck = 5,
         MoveSnake = 6,
-        Ping = 7
+        Ping = 7,
+        JoinChatRoom = 8,
+        LeaveChatRoom = 9,
     }
 }
