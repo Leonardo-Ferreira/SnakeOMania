@@ -144,6 +144,10 @@ namespace SnakeOMania.Server
             }
             else
             {
+                if (entry.Players.Any(p => p.Id == player.Id))
+                {
+                    return;
+                }
                 entry.Players.Add(player);
             }
             _toBeExecuted.Enqueue((new ListChatRoomsCommand(), player));
