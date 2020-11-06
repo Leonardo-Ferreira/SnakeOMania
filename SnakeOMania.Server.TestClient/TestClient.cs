@@ -91,7 +91,7 @@ namespace SnakeOMania.Server.TestClient
             Console.WriteLine(rooms.Count() + " Available Chat Rooms:");
             foreach (var item in rooms)
             {
-                Console.WriteLine(item.Name.Replace("*", "(Joined Already)"));
+                Console.WriteLine(item.Name.Replace("*", " (Joined Already)"));
             }
         }
 

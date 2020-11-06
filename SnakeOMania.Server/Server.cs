@@ -115,7 +115,7 @@ namespace SnakeOMania.Server
                         }
                         break;
                     case CommandId.ListChatRooms:
-                        var rooms = _chatRooms.Select(i => (i.Key, i.Value.RoomName)).ToList();
+                        var rooms = _chatRooms.Select(i => (i.Key, i.Value.RoomName + (i.Value.Players.Any(p => p.Id == item.Player.Id) ? "*" : ""))).ToList();
                         var resp = new ListChatRoomsCommandResponse(rooms);
                         var buff = resp.Serialize();
                         item.Player.Connection.Send(buff.Span);
