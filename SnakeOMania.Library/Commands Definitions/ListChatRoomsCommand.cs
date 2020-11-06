@@ -32,11 +32,11 @@ namespace SnakeOMania.Library
 
     public class ListChatRoomsCommandResponse : ICommand
     {
-        public IEnumerable<(int Id, string Name)> Rooms { get; private set; }
+        public IEnumerable<(uint Id, string Name)> Rooms { get; private set; }
 
         public CommandId Definition => CommandId.ListChatRooms;
 
-        public ListChatRoomsCommandResponse(List<(int, string)> rooms)
+        public ListChatRoomsCommandResponse(List<(uint, string)> rooms)
         {
             Rooms = rooms;
         }
@@ -61,20 +61,22 @@ namespace SnakeOMania.Library
 
         public void Deserialize(Span<byte> data)
         {
-            var result = new List<(int, string)>();
+            var result = new List<(uint, string)>();
             int index = 1;
-            while (index < data.Length - 1)//-1 because it ends in ";"
+            int iterations = 0;
+            while (index < data.Length - iterations)//-iterations because each interation ends in ";"
             {
                 var sub = data.Slice(index);
 
                 var length = sub.IndexOf((byte)0x3b);
                 var rawItem = data.Slice(index, length);
 
-                var item = (BitConverter.ToInt32(rawItem.Slice(0, 4)), Encoding.UTF8.GetString(rawItem.Slice(4)));
+                var item = (BitConverter.ToUInt32(rawItem.Slice(0, 4)), Encoding.UTF8.GetString(rawItem.Slice(4)));
 
                 result.Add(item);
 
                 index += length + 1; //+1 because we must ignore the trailing ";
+                iterations++;
             }
 
             Rooms = result;

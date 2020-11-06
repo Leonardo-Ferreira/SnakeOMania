@@ -18,7 +18,7 @@ namespace SnakeOMania.Server
 
         List<Player> _activePlayers;
 
-        ConcurrentDictionary<int, (string RoomName, List<Player> Players)> _chatRooms;
+        ConcurrentDictionary<uint, (string RoomName, List<Player> Players)> _chatRooms;
 
         ConcurrentQueue<(ICommand Command, Player Player)> _toBeExecuted;
 
@@ -29,9 +29,10 @@ namespace SnakeOMania.Server
             Server p = new Server();
             p._configs = new ServerConfigurations();
             p._toBeExecuted = new ConcurrentQueue<(ICommand Command, Player Player)>();
-            p._chatRooms = new ConcurrentDictionary<int, (string RoomName, List<Player> Players)>();
+            p._chatRooms = new ConcurrentDictionary<uint, (string RoomName, List<Player> Players)>();
             p._chatRooms.TryAdd(0, ("Lobby", new List<Player>()));
             p._chatRooms.TryAdd(1, ("Looking For Group", new List<Player>()));
+            p._chatRooms.TryAdd(2, ("AFK", new List<Player>()));
 
             var serverT = p.StartServer();
             var dispatchingT = p.StartCommandDispatching();
@@ -121,6 +122,16 @@ namespace SnakeOMania.Server
                         item.Player.Connection.Send(buff.Span);
                         break;
                     case CommandId.JoinChatRoom:
+                        var jcr = (JoinRoomCommand)item.Command;
+                        var entry = _chatRooms.FirstOrDefault(i => i.Value.RoomName == jcr.RoomName).Value;
+                        if (entry == default)
+                        {
+                            _chatRooms.TryAdd(_chatRooms.Keys.Max() + 1, (jcr.RoomName, new List<Player>() { item.Player }));
+                        }
+                        else
+                        {
+                            entry.Players.Add(item.Player);
+                        }
                         break;
                     default:
                         Debug.WriteLine("unkown command: " + item.Command.ToString());

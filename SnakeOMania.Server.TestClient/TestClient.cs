@@ -86,7 +86,7 @@ namespace SnakeOMania.Server.TestClient
             }
         }
 
-        private static void PrintChatRooms(IEnumerable<(int Id, string Name)> rooms)
+        private static void PrintChatRooms(IEnumerable<(uint Id, string Name)> rooms)
         {
             Console.WriteLine(rooms.Count() + " Available Chat Rooms:");
             foreach (var item in rooms)
