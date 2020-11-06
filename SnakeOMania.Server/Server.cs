@@ -54,9 +54,10 @@ namespace SnakeOMania.Server
                 listener.Bind(localEndPoint);
                 listener.Listen(10);
 
+                Console.WriteLine("Accepting Connections");
+
                 while (true)
                 {
-                    Console.WriteLine("Waiting for a connection...");
                     Socket handler = await listener.AcceptAsync();
                     handler.NoDelay = true;
                     handler.Blocking = false;
@@ -106,40 +107,52 @@ namespace SnakeOMania.Server
                 switch (item.Command.Definition)
                 {
                     case CommandId.SendChat:
-                        Debug.WriteLine("Echoing: " + item.Command.ToString());
-                        var cc = (ChatCommand)item.Command;
-                        cc.By = item.Player.Name;
-                        var others = _chatRooms[cc.Room].Players;//.Where(p => p.Id != item.Player.Id).ToList();
-                        var serializedCommand = item.Command.Serialize();
-                        foreach (var player in others)
-                        {
-                            player.Connection.Send(serializedCommand.Span);
-                        }
+                        DispatchChatCommand((ChatCommand)item.Command, item.Player);
                         break;
                     case CommandId.ListChatRooms:
-                        var rooms = _chatRooms.Select(i => (i.Key, i.Value.RoomName + (i.Value.Players.Any(p => p.Id == item.Player.Id) ? "*" : ""))).ToList();
-                        var resp = new ListChatRoomsCommandResponse(rooms);
-                        var buff = resp.Serialize();
-                        item.Player.Connection.Send(buff.Span);
+                        ExecuteListChatRoomsCommand(item.Player);
                         break;
                     case CommandId.JoinChatRoom:
-                        var jcr = (JoinRoomCommand)item.Command;
-                        var entry = _chatRooms.FirstOrDefault(i => i.Value.RoomName == jcr.RoomName).Value;
-                        if (entry == default)
-                        {
-                            var key = _chatRooms.Keys.Max() + 1;
-                            _chatRooms.TryAdd(key, (jcr.RoomName, new List<Player>() { item.Player }));
-                        }
-                        else
-                        {
-                            entry.Players.Add(item.Player);
-                        }
-                        _toBeExecuted.Enqueue((new ListChatRoomsCommand(), item.Player));
+                        ExecuteJoinChatRoomCommand((JoinRoomCommand)item.Command, item.Player);
                         break;
                     default:
                         Debug.WriteLine("unkown command: " + item.Command.ToString());
                         break;
                 }
+            }
+        }
+
+        private void ExecuteJoinChatRoomCommand(JoinRoomCommand jcr, Player player)
+        {
+            var entry = _chatRooms.FirstOrDefault(i => i.Value.RoomName == jcr.RoomName).Value;
+            if (entry == default)
+            {
+                var key = _chatRooms.Keys.Max() + 1;
+                _chatRooms.TryAdd(key, (jcr.RoomName, new List<Player>() { player }));
+            }
+            else
+            {
+                entry.Players.Add(player);
+            }
+            _toBeExecuted.Enqueue((new ListChatRoomsCommand(), player));
+        }
+
+        private void ExecuteListChatRoomsCommand(Player player)
+        {
+            var rooms = _chatRooms.Select(i => (i.Key, i.Value.RoomName + (i.Value.Players.Any(p => p.Id == player.Id) ? "*" : ""))).ToList();
+            var resp = new ListChatRoomsCommandResponse(rooms);
+            var buff = resp.Serialize();
+            player.Connection.Send(buff.Span);
+        }
+
+        private void DispatchChatCommand(ChatCommand cc, Player player)
+        {
+            cc.By = player.Name;
+            var others = _chatRooms[cc.Room].Players;//.Where(p => p.Id != item.Player.Id).ToList();
+            var serializedCommand = cc.Serialize();
+            foreach (var oplayer in others)
+            {
+                oplayer.Connection.Send(serializedCommand.Span);
             }
         }
 
