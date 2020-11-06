@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace SnakeOMania.Library
 {
     public class GameSession
     {
-        public int SessionId { get; set; }
+        public uint SessionId { get; set; }
         public Board Board { get; set; }
-        public Dictionary<int, Snake> Players { get; set; }
-        public bool Running { get; set; } = false;
+        public Dictionary<Guid, (Player, Snake)> Players { get; set; }
+        public GameStatus Status { get; set; }
         public int Difficulty { get; set; } = 200;
 
         public void CommandReceived(int player, Direction direction)
@@ -24,6 +26,25 @@ namespace SnakeOMania.Library
                 }
             }
             */
+        }
+
+        public void Join(Player player)
+        {
+            if (Players.ContainsKey(player.Id))
+            {
+                return;
+            }
+            Players.Add(player.Id, (player, new Snake(0, 0)));
+        }
+
+        public async Task TakeOver(Player player, Memory<byte> playerBuffer)
+        {
+            while (true)
+            {
+                var received = await player.Connection.ReceiveAsync(playerBuffer, SocketFlags.None);
+
+                var command = await CommandHelpers.RebuildCommand(playerBuffer.Slice(0, received));
+            }
         }
     }
 }

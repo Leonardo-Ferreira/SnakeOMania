@@ -62,7 +62,7 @@ namespace SnakeOMania.ConsoleClient
             DrawEmptyBoard();
             DrawMainMessage("To Start");
             Console.ReadKey();
-            _session.Running = true;
+            _session.Status = GameStatus.Running;
 
             Console.CursorVisible = false;
 
@@ -70,7 +70,7 @@ namespace SnakeOMania.ConsoleClient
             {
                 try
                 {
-                    while (_session.Running)
+                    while (_session.Status == GameStatus.Running)
                     {
                         Tick();
                         await Task.Delay(_session.Difficulty);
@@ -78,7 +78,7 @@ namespace SnakeOMania.ConsoleClient
                 }
                 catch
                 {
-                    _session.Running = false;
+                    _session.Status = GameStatus.PostGame;
                     DrawMainMessage("Game Over");
                 }
 
@@ -216,12 +216,12 @@ namespace SnakeOMania.ConsoleClient
 
         void Loop()
         {
-            while (_session.Running)
+            while (_session.Status == GameStatus.Running)
             {
                 var keyRead = Console.ReadKey(true);
                 if (keyRead.Key == ConsoleKey.Escape)
                 {
-                    _session.Running = false;
+                    _session.Status = GameStatus.PostGame;
                     break;
                 }
 
@@ -246,7 +246,7 @@ namespace SnakeOMania.ConsoleClient
 
         void Tick()
         {
-            if (!_session.Running)
+            if (_session.Status != GameStatus.Running)
             {
                 return;
             }

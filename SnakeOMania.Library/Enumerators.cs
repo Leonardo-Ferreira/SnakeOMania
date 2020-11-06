@@ -34,4 +34,12 @@ namespace SnakeOMania.Library
         LeaveChatRoom = 9,
         ListChatRooms = 10
     }
+
+    public enum GameStatus : byte
+    {
+        PreGame = 0,
+        Running = 1,
+        Paused = 2,
+        PostGame = 3
+    }
 }

@@ -19,7 +19,7 @@ namespace SnakeOMania.Server
         List<Player> _activePlayers;
 
         ConcurrentDictionary<uint, (string RoomName, List<Player> Players)> _chatRooms;
-
+        ConcurrentBag<GameSession> _gameSessions;
         ConcurrentQueue<(ICommand Command, Player Player)> _toBeExecuted;
 
         static async Task Main(string[] args)
@@ -58,29 +58,33 @@ namespace SnakeOMania.Server
 
                 while (true)
                 {
-                    Socket handler = await listener.AcceptAsync();
-                    handler.NoDelay = true;
-                    handler.Blocking = false;
-
-                    var handshakeResult = await Handshake(handler);
-                    if (handshakeResult == null)
+                    var player = await TryAcquirePlayer(listener);
+                    if (player == null)
                     {
                         continue;
                     }
 
-                    _activePlayers.Add(handshakeResult);
-                    _chatRooms[0].Players.Add(handshakeResult);
-                    _chatRooms[1].Players.Add(handshakeResult);
+                    _activePlayers.Add(player);
+                    _chatRooms[0].Players.Add(player);
+                    _chatRooms[1].Players.Add(player);
+
                     var pt = Task.Run(async () =>
                     {
                         byte[] buff = new byte[258];
                         var mem = new Memory<byte>(buff);
                         while (true)
                         {
-                            var received = await handshakeResult.Connection.ReceiveAsync(mem, SocketFlags.None);
+                            var received = await player.Connection.ReceiveAsync(mem, SocketFlags.None);
 
                             var command = await CommandHelpers.RebuildCommand(mem.Slice(0, received));
-                            _toBeExecuted.Enqueue((command, handshakeResult));
+
+                            if (command.Definition == CommandId.CreateGame)
+                            {
+                                var currentSession = OpenNewGameSession(player);
+                                await currentSession.TakeOver(player, mem);
+                            }
+
+                            _toBeExecuted.Enqueue((command, player));
                         }
                     });
                 }
@@ -92,6 +96,26 @@ namespace SnakeOMania.Server
 
             Console.WriteLine("\n Press any key to continue...");
             Console.ReadKey();
+        }
+
+        private GameSession OpenNewGameSession(Player player)
+        {
+            var session = new GameSession();
+            session.Board = new Board();
+            session.SessionId = _gameSessions.Max(s => s.SessionId + 1);
+            session.Join(player);
+            _gameSessions.Add(session);
+            return session;
+        }
+
+        private async Task<Player> TryAcquirePlayer(Socket listener)
+        {
+            Socket handler = await listener.AcceptAsync();
+            handler.NoDelay = true;
+            handler.Blocking = false;
+
+            var handshakeResult = await Handshake(handler);
+            return handshakeResult;
         }
 
         public async Task StartCommandDispatching()
@@ -116,6 +140,9 @@ namespace SnakeOMania.Server
                         ExecuteJoinChatRoomCommand((JoinRoomCommand)item.Command, item.Player);
                         break;
                     case CommandId.LeaveChatRoom:
+                        ExecuteLeaveChatRoomCommand((LeaveChatRoomCommand)item.Command, item.Player);
+                        break;
+                    case CommandId.CreateGame:
                         ExecuteLeaveChatRoomCommand((LeaveChatRoomCommand)item.Command, item.Player);
                         break;
                     default:
