@@ -67,6 +67,8 @@ namespace SnakeOMania.Server
                     }
 
                     _activePlayers.Add(handshakeResult);
+                    _chatRooms[0].Players.Add(handshakeResult);
+                    _chatRooms[1].Players.Add(handshakeResult);
                     var pt = Task.Run(async () =>
                     {
                         byte[] buff = new byte[258];
