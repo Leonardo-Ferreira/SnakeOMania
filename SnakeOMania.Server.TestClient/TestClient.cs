@@ -54,6 +54,32 @@ namespace SnakeOMania.Server.TestClient
                     case "/listrooms":
                         cmd = new ListChatRoomsCommand();
                         break;
+                    case "/leave":
+                        var lcrc = new LeaveChatRoomCommand();
+                        if (commandAndParameters.Length == 1)
+                        {
+                            if (_currentChatRoom < 3)
+                            {
+                                continue;
+                            }
+                            lcrc.Room = _currentChatRoom;
+                        }
+                        else
+                        {
+                            if (commandAndParameters[1] == "Lobby" || commandAndParameters[1] == "Looking For Group" || commandAndParameters[1] == "AFK")
+                            {
+                                continue;
+                            }
+                            var roomToLeave = _knownRooms.Where(r => r.Value == commandAndParameters[1]);
+                            if (!roomToLeave.Any())
+                            {
+                                continue;
+                            }
+                            lcrc.Room = roomToLeave.First().Key;                            
+                        }
+                        _currentChatRoom = 0;
+                        cmd = lcrc;
+                        break;
                     default:
                         var auxCmd = new ChatCommand();
                         auxCmd.Message = input;

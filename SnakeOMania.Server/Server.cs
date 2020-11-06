@@ -115,11 +115,23 @@ namespace SnakeOMania.Server
                     case CommandId.JoinChatRoom:
                         ExecuteJoinChatRoomCommand((JoinRoomCommand)item.Command, item.Player);
                         break;
+                    case CommandId.LeaveChatRoom:
+                        ExecuteLeaveChatRoomCommand((LeaveChatRoomCommand)item.Command, item.Player);
+                        break;
                     default:
                         Debug.WriteLine("unkown command: " + item.Command.ToString());
                         break;
                 }
             }
+        }
+
+        private void ExecuteLeaveChatRoomCommand(LeaveChatRoomCommand command, Player player)
+        {
+            var entry = _chatRooms[command.Room];
+
+            entry.Players.RemoveAll(p => p.Id == player.Id);
+
+            _toBeExecuted.Enqueue((new ListChatRoomsCommand(), player));
         }
 
         private void ExecuteJoinChatRoomCommand(JoinRoomCommand jcr, Player player)

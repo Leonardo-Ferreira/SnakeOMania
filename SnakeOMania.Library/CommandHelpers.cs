@@ -26,6 +26,10 @@ namespace SnakeOMania.Library
                     result = (ListChatRoomsCommandResponse)Activator.CreateInstance(typeof(ListChatRoomsCommandResponse));
                     result.Deserialize(data.Span);
                     break;
+                case CommandId.LeaveChatRoom:
+                    result = (LeaveChatRoomCommand)Activator.CreateInstance(typeof(LeaveChatRoomCommand));
+                    result.Deserialize(data.Span);
+                    break;
                 default:
                     result = null;
                     break;
