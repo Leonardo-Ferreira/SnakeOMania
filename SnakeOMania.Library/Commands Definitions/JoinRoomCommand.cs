@@ -11,7 +11,7 @@ namespace SnakeOMania.Library
 
         public void Deserialize(Span<byte> data)
         {
-            RoomName = Encoding.UTF8.GetString(data.Slice(1));
+            RoomName = Encoding.UTF8.GetString(data.Slice(3));
         }
 
         public Memory<byte> Serialize()

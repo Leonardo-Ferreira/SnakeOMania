@@ -29,6 +29,9 @@ namespace SnakeOMania.Server
             Server p = new Server();
             p._configs = new ServerConfigurations();
             p._toBeExecuted = new ConcurrentQueue<(ICommand Command, Player Player)>();
+            p._chatRooms = new ConcurrentDictionary<int, (string RoomName, List<Player> Players)>();
+            p._chatRooms.TryAdd(0, ("Lobby", new List<Player>()));
+            p._chatRooms.TryAdd(1, ("Looking For Group", new List<Player>()));
 
             var serverT = p.StartServer();
             var dispatchingT = p.StartCommandDispatching();
@@ -108,6 +111,14 @@ namespace SnakeOMania.Server
                         {
                             player.Connection.Send(serializedCommand.Span);
                         }
+                        break;
+                    case CommandId.ListChatRooms:
+                        var rooms = _chatRooms.Select(i => (i.Key, i.Value.RoomName)).ToList();
+                        var resp = new ListChatRoomsCommandResponse(rooms);
+                        var buff = resp.Serialize();
+                        item.Player.Connection.Send(buff.Span);
+                        break;
+                    case CommandId.JoinChatRoom:
                         break;
                     default:
                         Debug.WriteLine("unkown command: " + item.Command.ToString());

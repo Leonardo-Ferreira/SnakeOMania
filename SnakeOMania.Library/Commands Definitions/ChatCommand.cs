@@ -11,6 +11,9 @@ namespace SnakeOMania.Library
 
         public string By { get; set; }
 
+        //Do not serialize this
+        public string RoomName { get; set; }
+
         public CommandId Definition { get; set; } = CommandId.SendChat;
 
         public Memory<byte> Serialize()

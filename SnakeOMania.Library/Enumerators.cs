@@ -32,5 +32,6 @@ namespace SnakeOMania.Library
         Ping = 7,
         JoinChatRoom = 8,
         LeaveChatRoom = 9,
+        ListChatRooms = 10
     }
 }

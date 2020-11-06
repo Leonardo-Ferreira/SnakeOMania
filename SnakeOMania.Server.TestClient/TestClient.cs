@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -29,7 +31,6 @@ namespace SnakeOMania.Server.TestClient
                 {
                     var received = await _mainConnection.ReceiveAsync(mem, SocketFlags.None);
                     var commandType = (CommandId)buff[0];
-                    var commandDataLength = (ushort)buff[1];
 
                     var command = await CommandHelpers.RebuildCommand(mem.Slice(0, received));
                     ExecuteCommand(command);
@@ -50,9 +51,13 @@ namespace SnakeOMania.Server.TestClient
                         continue;
                         break;
                     case "/join":
-                        var auxC = new JoinRoomCommand();
-                        auxC.RoomName = commandAndParameters[1];
-                        cmd = auxC;
+                        var jrc = new JoinRoomCommand();
+                        jrc.RoomName = commandAndParameters[1];
+                        cmd = jrc;
+                        break;
+                    case "/listchatrooms":
+                    case "/listrooms":
+                        cmd = new ListChatRoomsCommand();
                         break;
                     default:
                         var auxCmd = new ChatCommand();
@@ -72,21 +77,27 @@ namespace SnakeOMania.Server.TestClient
                 case CommandId.SendChat:
                     PrintChat(command.ToString());
                     break;
+                case CommandId.ListChatRooms:
+                    var lcr = (ListChatRoomsCommandResponse)command;
+                    PrintChatRooms(lcr.Rooms);
+                    break;
                 default:
                     break;
             }
         }
 
+        private static void PrintChatRooms(IEnumerable<(int Id, string Name)> rooms)
+        {
+            Console.WriteLine(rooms.Count() + " Available Chat Rooms:");
+            foreach (var item in rooms)
+            {
+                Console.WriteLine(item.Name.Replace("*", "(Joined Already)"));
+            }
+        }
+
         private static void PrintChat(string msg)
         {
-            try
-            {
-                Console.WriteLine(msg);
-            }
-            catch (Exception x)
-            {
-
-            }
+            Console.WriteLine(msg);
         }
 
         public static async Task StartClient()

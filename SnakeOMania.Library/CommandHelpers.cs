@@ -22,6 +22,10 @@ namespace SnakeOMania.Library
                     result = (JoinRoomCommand)Activator.CreateInstance(typeof(JoinRoomCommand));
                     result.Deserialize(data.Span);
                     break;
+                case CommandId.ListChatRooms:
+                    result = (ListChatRoomsCommandResponse)Activator.CreateInstance(typeof(ListChatRoomsCommandResponse));
+                    result.Deserialize(data.Span);
+                    break;
                 default:
                     result = null;
                     break;
