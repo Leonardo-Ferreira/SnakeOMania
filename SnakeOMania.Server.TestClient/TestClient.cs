@@ -15,27 +15,21 @@ namespace SnakeOMania.Server.TestClient
         static int chatMessageCount = 3;
         static Socket _mainConnection;
 
+        static uint _currentChatRoom = 0;
+        static string switchToChat = null;
+
+        static Dictionary<uint, string> _knownRooms;
+
         static async Task Main(string[] args)
         {
             Console.WriteLine("Starting");
 
             await StartClient();
 
+            await Prepare();
+
             Console.WriteLine("HANDSHAKE DONE!");
-
-            var receiveTask = Task.Run(async () =>
-            {
-                byte[] buff = new byte[258];
-                var mem = new Memory<byte>(buff);
-                while (true)
-                {
-                    var received = await _mainConnection.ReceiveAsync(mem, SocketFlags.None);
-                    var commandType = (CommandId)buff[0];
-
-                    var command = await CommandHelpers.RebuildCommand(mem.Slice(0, received));
-                    ExecuteCommand(command);
-                }
-            });
+            StartListeningCommands();
 
             do
             {
@@ -54,6 +48,7 @@ namespace SnakeOMania.Server.TestClient
                         var jrc = new JoinRoomCommand();
                         jrc.RoomName = commandAndParameters[1];
                         cmd = jrc;
+                        switchToChat = jrc.RoomName;
                         break;
                     case "/listchatrooms":
                     case "/listrooms":
@@ -62,6 +57,7 @@ namespace SnakeOMania.Server.TestClient
                     default:
                         var auxCmd = new ChatCommand();
                         auxCmd.Message = input;
+                        auxCmd.Room = (byte)_currentChatRoom;
                         cmd = auxCmd;
                         break;
                 }
@@ -70,16 +66,48 @@ namespace SnakeOMania.Server.TestClient
             } while (true);
         }
 
+        private static async Task Prepare()
+        {
+            var cmd = new ListChatRoomsCommand();
+            await _mainConnection.SendAsync(cmd.Serialize(), SocketFlags.None);
+        }
+
+        private static void StartListeningCommands()
+        {
+            var receiveTask = Task.Run(async () =>
+            {
+                byte[] buff = new byte[258];
+                var mem = new Memory<byte>(buff);
+                while (true)
+                {
+                    var received = await _mainConnection.ReceiveAsync(mem, SocketFlags.None);
+                    var commandType = (CommandId)buff[0];
+
+                    var command = await CommandHelpers.RebuildCommand(mem.Slice(0, received));
+                    ExecuteCommand(command);
+                }
+            });
+        }
+
         private static void ExecuteCommand(ICommand command)
         {
             switch (command.Definition)
             {
                 case CommandId.SendChat:
-                    PrintChat(command.ToString());
+                    PrintChat((ChatCommand)command);
                     break;
                 case CommandId.ListChatRooms:
                     var lcr = (ListChatRoomsCommandResponse)command;
-                    PrintChatRooms(lcr.Rooms);
+                    _knownRooms = lcr.Rooms.ToDictionary(i => i.Id, z => z.Name.Replace("*", ""));
+                    if (switchToChat != null)
+                    {
+                        _currentChatRoom = (byte)lcr.Rooms.First(r => r.Name == switchToChat + "*").Id;
+                        switchToChat = null;
+                    }
+                    else
+                    {
+                        PrintChatRooms(lcr.Rooms);
+                    }
                     break;
                 default:
                     break;
@@ -95,9 +123,9 @@ namespace SnakeOMania.Server.TestClient
             }
         }
 
-        private static void PrintChat(string msg)
+        private static void PrintChat(ChatCommand msg)
         {
-            Console.WriteLine(msg);
+            Console.WriteLine($"{msg.By} @ {_knownRooms[msg.Room]}: {msg.Message}");
         }
 
         public static async Task StartClient()

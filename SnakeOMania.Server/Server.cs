@@ -107,8 +107,9 @@ namespace SnakeOMania.Server
                 {
                     case CommandId.SendChat:
                         Debug.WriteLine("Echoing: " + item.Command.ToString());
-                        ((ChatCommand)item.Command).By = item.Player.Name;
-                        var others = _activePlayers;//.Where(p => p.Id != item.Player.Id).ToList();
+                        var cc = (ChatCommand)item.Command;
+                        cc.By = item.Player.Name;
+                        var others = _chatRooms[cc.Room].Players;//.Where(p => p.Id != item.Player.Id).ToList();
                         var serializedCommand = item.Command.Serialize();
                         foreach (var player in others)
                         {
@@ -126,12 +127,14 @@ namespace SnakeOMania.Server
                         var entry = _chatRooms.FirstOrDefault(i => i.Value.RoomName == jcr.RoomName).Value;
                         if (entry == default)
                         {
-                            _chatRooms.TryAdd(_chatRooms.Keys.Max() + 1, (jcr.RoomName, new List<Player>() { item.Player }));
+                            var key = _chatRooms.Keys.Max() + 1;
+                            _chatRooms.TryAdd(key, (jcr.RoomName, new List<Player>() { item.Player }));
                         }
                         else
                         {
                             entry.Players.Add(item.Player);
                         }
+                        _toBeExecuted.Enqueue((new ListChatRoomsCommand(), item.Player));
                         break;
                     default:
                         Debug.WriteLine("unkown command: " + item.Command.ToString());
