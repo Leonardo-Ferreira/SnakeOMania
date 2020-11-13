@@ -30,6 +30,9 @@ namespace SnakeOMania.Library
                     result = (LeaveChatRoomCommand)Activator.CreateInstance(typeof(LeaveChatRoomCommand));
                     result.Deserialize(data.Span);
                     break;
+                case CommandId.CreateGame:
+                    result = (CreateGameCommand)Activator.CreateInstance(typeof(CreateGameCommand));
+                    break;
                 default:
                     result = null;
                     break;

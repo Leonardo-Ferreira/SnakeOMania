@@ -44,6 +44,7 @@ namespace SnakeOMania.Server
         public async Task StartServer()
         {
             _activePlayers = new List<Player>();
+            _gameSessions = new ConcurrentBag<GameSession>();
             IPHostEntry host = Dns.GetHostEntry("localhost");
             IPAddress ipAddress = host.AddressList[0];
             IPEndPoint localEndPoint = new IPEndPoint(ipAddress, _configs.DefaultPort);

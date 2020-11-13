@@ -80,6 +80,9 @@ namespace SnakeOMania.Server.TestClient
                         _currentChatRoom = 0;
                         cmd = lcrc;
                         break;
+                    case "/creategame":
+                        cmd = new CreateGameCommand();
+                        break;
                     default:
                         var auxCmd = new ChatCommand();
                         auxCmd.Message = input;
