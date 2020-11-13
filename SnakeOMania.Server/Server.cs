@@ -70,22 +70,7 @@ namespace SnakeOMania.Server
 
                     var pt = Task.Run(async () =>
                     {
-                        byte[] buff = new byte[258];
-                        var mem = new Memory<byte>(buff);
-                        while (true)
-                        {
-                            var received = await player.Connection.ReceiveAsync(mem, SocketFlags.None);
-
-                            var command = await CommandHelpers.RebuildCommand(mem.Slice(0, received));
-
-                            if (command.Definition == CommandId.CreateGame)
-                            {
-                                var currentSession = OpenNewGameSession(player);
-                                await currentSession.TakeOver(player, mem);
-                            }
-
-                            _toBeExecuted.Enqueue((command, player));
-                        }
+                        await new PlayerInputHandler().Handle(player, _toBeExecuted);
                     });
                 }
             }
@@ -96,16 +81,6 @@ namespace SnakeOMania.Server
 
             Console.WriteLine("\n Press any key to continue...");
             Console.ReadKey();
-        }
-
-        private GameSession OpenNewGameSession(Player player)
-        {
-            var session = new GameSession();
-            session.Board = new Board();
-            session.SessionId = _gameSessions.Max(s => s.SessionId + 1);
-            session.Join(player);
-            _gameSessions.Add(session);
-            return session;
         }
 
         private async Task<Player> TryAcquirePlayer(Socket listener)
@@ -143,13 +118,26 @@ namespace SnakeOMania.Server
                         ExecuteLeaveChatRoomCommand((LeaveChatRoomCommand)item.Command, item.Player);
                         break;
                     case CommandId.CreateGame:
-                        ExecuteLeaveChatRoomCommand((LeaveChatRoomCommand)item.Command, item.Player);
+                        OpenNewGameSession((CreateGameCommand)item.Command, item.Player);
                         break;
                     default:
                         Debug.WriteLine("unkown command: " + item.Command.ToString());
                         break;
                 }
             }
+        }
+
+        private GameSession OpenNewGameSession(CreateGameCommand command, Player player)
+        {
+            var session = new GameSession();
+            session.Board = new Board();
+            session.SessionId = _gameSessions.Max(s => s.SessionId + 1);
+            session.Join(player);
+            _gameSessions.Add(session);
+
+            session.TakeOver(player, command.CurrentPlayerBuffer);
+
+            return session;
         }
 
         private void ExecuteLeaveChatRoomCommand(LeaveChatRoomCommand command, Player player)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -44,7 +45,10 @@ namespace SnakeOMania.Library
                 var received = await player.Connection.ReceiveAsync(playerBuffer, SocketFlags.None);
 
                 var command = await CommandHelpers.RebuildCommand(playerBuffer.Slice(0, received));
+
+                Debug.Write("I dont know what to do with " + command.ToString());
             }
+            player.OnLeftGameSession();
         }
     }
 }

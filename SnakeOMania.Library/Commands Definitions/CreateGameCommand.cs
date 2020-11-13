@@ -14,5 +14,8 @@ namespace SnakeOMania.Library
         {
             return new Memory<byte>(new byte[1] { (byte)Definition });
         }
+
+        //DO not serialize this
+        public Memory<byte> CurrentPlayerBuffer { get; set; }
     }
 }
