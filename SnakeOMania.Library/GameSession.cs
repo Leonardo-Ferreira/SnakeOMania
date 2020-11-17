@@ -14,6 +14,14 @@ namespace SnakeOMania.Library
         public GameStatus Status { get; set; }
         public int Difficulty { get; set; } = 200;
 
+        public GameSession()
+        {
+            Players = new Dictionary<Guid, (Player, Snake)>();
+            Board = new Board() { Size = 10, OpenEdge = false };
+            Status = GameStatus.PreGame;
+            Difficulty = 250;
+        }
+
         public void CommandReceived(int player, Direction direction)
         {
             /*

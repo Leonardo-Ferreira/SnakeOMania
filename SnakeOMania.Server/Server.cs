@@ -132,7 +132,7 @@ namespace SnakeOMania.Server
         {
             var session = new GameSession();
             session.Board = new Board();
-            session.SessionId = _gameSessions.Max(s => s.SessionId + 1);
+            session.SessionId = _gameSessions.Any() ? _gameSessions.Max(s => s.SessionId + 1) : 1;
             session.Join(player);
             _gameSessions.Add(session);
 
