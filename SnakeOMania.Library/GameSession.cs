@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
@@ -13,6 +14,7 @@ namespace SnakeOMania.Library
         public Dictionary<Guid, (Player, Snake)> Players { get; set; }
         public GameStatus Status { get; set; }
         public int Difficulty { get; set; } = 200;
+        ConcurrentQueue<(ICommand Command, Player Player)> _toBeExecuted;
 
         public GameSession()
         {
@@ -20,6 +22,7 @@ namespace SnakeOMania.Library
             Board = new Board() { Size = 10, OpenEdge = false };
             Status = GameStatus.PreGame;
             Difficulty = 250;
+            _toBeExecuted = new ConcurrentQueue<(ICommand Command, Player Player)>();
         }
 
         public void CommandReceived(int player, Direction direction)
@@ -48,14 +51,8 @@ namespace SnakeOMania.Library
 
         public async Task TakeOver(Player player, Memory<byte> playerBuffer)
         {
-            while (true)
-            {
-                var received = await player.Connection.ReceiveAsync(playerBuffer, SocketFlags.None);
+            await new PlayerInputHandler(true).Handle(player, _toBeExecuted);
 
-                var command = await CommandHelpers.RebuildCommand(playerBuffer.Slice(0, received));
-
-                Debug.Write("I dont know what to do with " + command.ToString());
-            }
             player.OnLeftGameSession();
         }
     }

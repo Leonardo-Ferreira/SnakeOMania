@@ -8,8 +8,11 @@ namespace SnakeOMania.Library
     public class PlayerInputHandler
     {
         ConcurrentQueue<(ICommand, Player)> _dispatcherQueue;
-        public PlayerInputHandler()
+        bool _isGameSessionHandler;
+
+        public PlayerInputHandler(bool isGameSession)
         {
+            _isGameSessionHandler = isGameSession;
         }
 
         public async Task Handle(Player player, ConcurrentQueue<(ICommand, Player)> dispatcherQueue)
@@ -23,6 +26,11 @@ namespace SnakeOMania.Library
 
                 var command = await CommandHelpers.RebuildCommand(mem.Slice(0, received));
 
+                if (_isGameSessionHandler && !CanBeExecutedOnGameSession(command))
+                {
+                    continue;
+                }
+
                 if (command.Definition == CommandId.CreateGame)
                 {
                     ((CreateGameCommand)command).CurrentPlayerBuffer = mem;
@@ -32,6 +40,16 @@ namespace SnakeOMania.Library
 
                 dispatcherQueue.Enqueue((command, player));
             }
+        }
+
+        private bool CanBeExecutedOnGameSession(ICommand command)
+        {
+            if (command is CreateGameCommand)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private Task Player_LeftGameSession(object player, EventArgs args)

@@ -71,7 +71,7 @@ namespace SnakeOMania.Server
 
                     var pt = Task.Run(async () =>
                     {
-                        await new PlayerInputHandler().Handle(player, _toBeExecuted);
+                        await new PlayerInputHandler(false).Handle(player, _toBeExecuted);
                     });
                 }
             }
