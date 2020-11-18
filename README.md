@@ -2,7 +2,7 @@
 
 Snake O'Mania is classical snake game rewrite on C# using .Net Core 3.1+
 
-## Desire Features
+## Desired Features
 1. Good'old single player
 2. Difficulty settings
 3. Special Apples
