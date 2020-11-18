@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -14,7 +15,9 @@ namespace SnakeOMania.Library
         public Dictionary<Guid, (Player, Snake)> Players { get; set; }
         public GameStatus Status { get; set; }
         public int Difficulty { get; set; } = 200;
+
         ConcurrentQueue<(ICommand Command, Player Player)> _toBeExecuted;
+        ConcurrentDictionary<uint, (string RoomName, List<Player> Players)> chatRoom;
 
         public GameSession()
         {
@@ -22,7 +25,18 @@ namespace SnakeOMania.Library
             Board = new Board() { Size = 10, OpenEdge = false };
             Status = GameStatus.PreGame;
             Difficulty = 250;
-            _toBeExecuted = new ConcurrentQueue<(ICommand Command, Player Player)>();
+
+            chatRoom = new ConcurrentDictionary<uint, (string RoomName, List<Player> Players)>();
+            chatRoom[0] = ("Game Chat", Players.Select(i => i.Value.Item1).ToList());
+
+            var sessionDispatcher = new CommandDispatcher(chatRoom, null);
+            _toBeExecuted = sessionDispatcher.ExecutionQueue;
+            sessionDispatcher.StartCommandDispatching();
+        }
+
+        public void EnqueueCommand(ICommand command, Player target)
+        {
+            _toBeExecuted.Enqueue((command, target));
         }
 
         public void CommandReceived(int player, Direction direction)
@@ -47,11 +61,13 @@ namespace SnakeOMania.Library
                 return;
             }
             Players.Add(player.Id, (player, new Snake(0, 0)));
+
+            chatRoom[0].Players.Add(player);
         }
 
         public async Task TakeOver(Player player, Memory<byte> playerBuffer)
         {
-            await new PlayerInputHandler(true).Handle(player, _toBeExecuted);
+            await new PlayerInputHandler(true).Handle(player, _toBeExecuted, playerBuffer);
 
             player.OnLeftGameSession();
         }

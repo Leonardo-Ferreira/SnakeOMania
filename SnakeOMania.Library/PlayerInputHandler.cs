@@ -19,12 +19,17 @@ namespace SnakeOMania.Library
         {
             byte[] buff = new byte[258];
             var mem = new Memory<byte>(buff);
+            await Handle(player, dispatcherQueue, mem);
+        }
+
+        public async Task Handle(Player player, ConcurrentQueue<(ICommand, Player)> dispatcherQueue, Memory<byte> playerBuffer)
+        {
             var loop = true;
             while (loop)
             {
-                var received = await player.Connection.ReceiveAsync(mem, SocketFlags.None);
+                var received = await player.Connection.ReceiveAsync(playerBuffer, SocketFlags.None);
 
-                var command = await CommandHelpers.RebuildCommand(mem.Slice(0, received));
+                var command = await CommandHelpers.RebuildCommand(playerBuffer.Slice(0, received));
 
                 if (_isGameSessionHandler && !CanBeExecutedOnGameSession(command))
                 {
@@ -33,7 +38,7 @@ namespace SnakeOMania.Library
 
                 if (command.Definition == CommandId.CreateGame)
                 {
-                    ((CreateGameCommand)command).CurrentPlayerBuffer = mem;
+                    ((CreateGameCommand)command).CurrentPlayerBuffer = playerBuffer;
                     player.LeftGameSession += Player_LeftGameSession;
                     loop = false;
                 }
@@ -44,7 +49,7 @@ namespace SnakeOMania.Library
 
         private bool CanBeExecutedOnGameSession(ICommand command)
         {
-            if (command is CreateGameCommand)
+            if (command is CreateGameCommand || command is JoinRoomCommand || command is LeaveChatRoomCommand)
             {
                 return false;
             }
